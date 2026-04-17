@@ -52,7 +52,9 @@ def print_json_response(response: Any, description: str) -> None:
 async def run_single_turn_test(client: A2AClient) -> None:
     """Runs a single-turn non-streaming test."""
 
-    send_message_payload = create_send_message_payload(text="how much is 100 USD in CAD?")
+    send_message_payload = create_send_message_payload(
+        text="how much is 100 USD in CAD?"
+    )
     request = SendMessageRequest(
         id=str(uuid4()), params=MessageSendParams(**send_message_payload)
     )

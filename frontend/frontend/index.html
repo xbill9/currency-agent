@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Agent & MCP Test App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page">
+    <div class="container">
+        <header>
+            <div class="logo">💰 Currency Agent Test Tool</div>
+        </header>
+        <main class="hero-section">
+            <h1>Test your Currency Agents & MCP Servers.</h1>
+            <p class="subtitle">Select a target server, enter your query, and see real-time A2A communication and tool execution.</p>
+            
+            <div class="server-config hero-form" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <div class="server-selection" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 10px;">
+                    <label>
+                        <input type="radio" name="target-server" value="agent" checked> 🤖 Currency Agent
+                    </label>
+                    <label>
+                        <input type="radio" name="target-server" value="mcp"> 🛠️ MCP Server
+                    </label>
+                </div>
+                <div class="url-inputs" style="display: flex; gap: 10px;">
+                    <input type="text" id="agent-url" placeholder="Currency Agent URL (Cloud Run)" style="flex: 1;">
+                    <input type="text" id="mcp-url" placeholder="MCP Server URL (Cloud Run)" style="flex: 1;">
+                </div>
+            </div>
+
+            <form id="create-form" class="hero-form">
+                <input type="text" id="topic-input" placeholder="Ask about exchange rates, e.g. 'How many EUR is 100 USD?'" autocomplete="off" required>
+                <button type="submit" id="create-button">
+                    <span>Send Message</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                        <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </form>
+
+            <div id="progress-container" class="progress-container hidden">
+                <div class="agent-status">
+                    <div class="status-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <div id="status-text" class="status-text">Initializing AI session...</div>
+                </div>
+                <div id="chat-output" style="margin-top: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; overflow-y: auto; max-height: 400px; display: none;">
+                    <div id="output-text" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="app.ts"></script>
+</body>
+</html>

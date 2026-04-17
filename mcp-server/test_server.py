@@ -1,8 +1,10 @@
 import asyncio
+import pytest
 
 from fastmcp import Client
 
 
+@pytest.mark.asyncio
 async def test_server():
     # Test the MCP server using streamable-http transport.
     # Use "/sse" endpoint if using sse transport.

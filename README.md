@@ -120,28 +120,57 @@ Now you are ready for the fun to begin!
 
 ## Local Deployment
 
-### MCP Server
+You can manage all services using the provided `Makefile`.
 
-In a terminal, start the MCP Server (it starts on port 8080):
+### Start all services
+
+To start the MCP Server and the A2A Agent in the background:
 
 ```bash
-uv run mcp-server/server.py
+make start
 ```
 
-### A2A Server
+This will redirect output to `mcp.log` and `agent.log`.
 
-In a separate terminal, start the A2A Server (it starts on port 10000):
+### Check status
+
+To see if the services are running:
 
 ```bash
-uv run uvicorn currency_agent.agent:a2a_app --host localhost --port 10000
+make status
+```
+
+### Stop all services
+
+To stop the background processes:
+
+```bash
+make stop
+```
+
+### Manual/Foreground Execution
+
+If you prefer to run services in separate terminals (foreground):
+
+**MCP Server:**
+```bash
+make mcp
+# or: uv run mcp-server/server.py
+```
+
+**A2A Server:**
+```bash
+make agent
+# or: uv run uvicorn currency_agent.agent:a2a_app --host localhost --port 10000
 ```
 
 ### A2A Client
 
-In a separate terminal, run the A2A Client to run some queries against our A2A server:
+Once the servers are running, you can run some queries:
 
 ```bash
-uv run currency_agent/test_client.py
+make test-client
+# or: uv run currency_agent/test_client.py
 ```
 
 ## 🤝 Contributing

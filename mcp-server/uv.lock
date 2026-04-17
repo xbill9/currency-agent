@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 
 [[package]]
@@ -251,7 +251,7 @@ version = "3.23.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
-    { name = "docstring-parser", marker = "python_full_version < '4.0'" },
+    { name = "docstring-parser", marker = "python_full_version < '4'" },
     { name = "rich" },
     { name = "rich-rst" },
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
@@ -584,10 +584,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastmcp" },
+    { name = "httpx" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "fastmcp", specifier = "==2.11.3" }]
+requires-dist = [
+    { name = "fastmcp", specifier = "==2.11.3" },
+    { name = "httpx", specifier = ">=0.28.0" },
+]
 
 [[package]]
 name = "mdurl"

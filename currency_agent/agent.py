@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
 from google.adk.a2a.utils.agent_to_a2a import to_a2a
-from google.adk.tools.mcp_tool import MCPToolset, StreamableHTTPConnectionParams
+from google.adk.tools.mcp_tool import McpToolset, StreamableHTTPConnectionParams
+from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="[%(levelname)s]: %(message)s", level=logging.INFO)
@@ -19,22 +20,28 @@ SYSTEM_INSTRUCTION = (
     "Do not attempt to answer unrelated questions or use tools for other purposes."
 )
 
-logger.info("--- 🔧 Loading MCP tools from MCP Server... ---")
 logger.info("--- 🤖 Creating ADK Currency Agent... ---")
+logger.info(f"MCP_SERVER_URL: {os.getenv('MCP_SERVER_URL')}")
 
 root_agent = LlmAgent(
-    model="gemini-2.5-flash",
+    model=os.getenv("GENAI_MODEL", "gemini-2.5-flash"),
     name="currency_agent",
     description="An agent that can help with currency conversions",
     instruction=SYSTEM_INSTRUCTION,
     tools=[
-        MCPToolset(
+        McpToolset(
             connection_params=StreamableHTTPConnectionParams(
                 url=os.getenv("MCP_SERVER_URL", "http://localhost:8080/mcp")
-            )
+            ),
+            lazy=True,
         )
     ],
 )
 
 # Make the agent A2A-compatible
-a2a_app = to_a2a(root_agent, port=10000)
+# Use port 8080 by default for Cloud Run
+a2a_app = to_a2a(root_agent, port=int(os.getenv("PORT", 8080)))
+
+@a2a_app.get("/health")
+async def health():
+    return {"status": "ok"}
