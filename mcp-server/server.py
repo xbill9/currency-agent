@@ -1,3 +1,15 @@
+import socket
+
+# Force IPv4-only to avoid connection hangs on IPv6 in sandbox environments
+_original_getaddrinfo = socket.getaddrinfo
+
+
+def _ipv4_only_getaddrinfo(*args, **kwargs):
+    return [r for r in _original_getaddrinfo(*args, **kwargs) if r[0] == socket.AF_INET]
+
+
+socket.getaddrinfo = _ipv4_only_getaddrinfo
+
 import asyncio
 import logging
 import os
@@ -32,7 +44,7 @@ def get_exchange_rate(
     )
     try:
         response = httpx.get(
-            f"https://api.frankfurter.app/{currency_date}",
+            f"https://api.frankfurter.dev/v1/{currency_date}",
             params={"from": currency_from, "to": currency_to},
         )
         response.raise_for_status()

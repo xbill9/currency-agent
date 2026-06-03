@@ -17,7 +17,7 @@ from a2a.types import (
 )
 import httpx
 
-AGENT_URL = os.getenv("AGENT_URL", "http://localhost:10000")
+AGENT_URL = os.getenv("AGENT_URL", "http://127.0.0.1:10000")
 
 
 def create_send_message_payload(
@@ -125,7 +125,7 @@ async def main() -> None:
     """Main function to run the tests."""
     print(f"--- 🔄 Connecting to agent at {AGENT_URL}... ---")
     try:
-        async with httpx.AsyncClient() as httpx_client:
+        async with httpx.AsyncClient(timeout=30.0) as httpx_client:
             # Create a resolver to fetch the agent card
             resolver = A2ACardResolver(
                 httpx_client=httpx_client,

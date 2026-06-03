@@ -16,6 +16,39 @@ import logging
 import subprocess
 from urllib.parse import urlparse
 
+# Monkeypatch to fix ImportError: cannot import name 'GEN_AI_INPUT_MESSAGES' from 'opentelemetry'
+try:
+    import opentelemetry.semconv._incubating.attributes.gen_ai_attributes as gen_ai_attr
+
+    if not hasattr(gen_ai_attr, "GEN_AI_INPUT_MESSAGES"):
+        setattr(gen_ai_attr, "GEN_AI_INPUT_MESSAGES", "gen_ai.input.messages")
+    if not hasattr(gen_ai_attr, "GEN_AI_OUTPUT_MESSAGES"):
+        setattr(gen_ai_attr, "GEN_AI_OUTPUT_MESSAGES", "gen_ai.output.messages")
+    if not hasattr(gen_ai_attr, "GEN_AI_RESPONSE_FINISH_REASONS"):
+        setattr(
+            gen_ai_attr,
+            "GEN_AI_RESPONSE_FINISH_REASONS",
+            "gen_ai.response.finish_reasons",
+        )
+    if not hasattr(gen_ai_attr, "GEN_AI_SYSTEM_INSTRUCTIONS"):
+        setattr(gen_ai_attr, "GEN_AI_SYSTEM_INSTRUCTIONS", "gen_ai.system.instructions")
+    if not hasattr(gen_ai_attr, "GEN_AI_USAGE_INPUT_TOKENS"):
+        setattr(gen_ai_attr, "GEN_AI_USAGE_INPUT_TOKENS", "gen_ai.usage.input_tokens")
+    if not hasattr(gen_ai_attr, "GEN_AI_USAGE_OUTPUT_TOKENS"):
+        setattr(gen_ai_attr, "GEN_AI_USAGE_OUTPUT_TOKENS", "gen_ai.usage.output_tokens")
+except ImportError:
+    pass
+
+# Monkeypatch to fix ImportError: cannot import name 'SamplingCapability' from 'mcp'
+try:
+    import mcp
+    import mcp.types
+
+    if not hasattr(mcp, "SamplingCapability"):
+        setattr(mcp, "SamplingCapability", mcp.types.SamplingCapability)
+except ImportError:
+    pass
+
 import httpx
 from google.adk.agents.remote_a2a_agent import DEFAULT_TIMEOUT
 from google.auth.exceptions import DefaultCredentialsError

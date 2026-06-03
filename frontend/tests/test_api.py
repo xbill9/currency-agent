@@ -1,5 +1,5 @@
 import os
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,11 +18,9 @@ def test_health_endpoint(client):
 
 
 @patch.dict(os.environ, {"AGENT_SERVER_URL": "http://fake-server"})
-@patch("main.list_agents", new_callable=AsyncMock)
-@patch("main.create_session", new_callable=AsyncMock)
-@patch("main.query_adk_server")
+@patch("main.get_a2a_client", new_callable=AsyncMock)
 def test_chat_stream_missing_config(
-    mock_query, mock_create_session, mock_list_agents, client
+    mock_get_a2a, client
 ):
     # Temporarily remove AGENT_SERVER_URL from env for this test
     with patch.dict(os.environ, {}, clear=True):
@@ -40,29 +38,74 @@ def test_chat_stream_missing_config(
 
 
 @patch.dict(os.environ, {"AGENT_SERVER_URL": "http://fake-server"})
-@patch("main.list_agents", new_callable=AsyncMock)
-@patch("main.create_session", new_callable=AsyncMock)
-@patch("main.query_adk_server")
-def test_chat_stream_success(mock_query, mock_create_session, mock_list_agents, client):
+@patch("main.get_a2a_client", new_callable=AsyncMock)
+def test_chat_stream_success(mock_get_a2a_client, client):
     import main
 
     main.agent_server_url = "http://fake-server"
 
-    mock_list_agents.return_value = ["agent"]
-    mock_create_session.return_value = {"id": "session1"}
+    # Mock A2AClient and send_message_streaming
+    mock_a2a_client = MagicMock()
+    mock_get_a2a_client.return_value = mock_a2a_client
 
-    # Mock the query_adk_server async generator
-    async def mock_events(*args, **kwargs):
-        yield {
-            "author": "researcher",
-            "content": {"parts": [{"text": "Researching..."}]},
-        }
-        yield {
-            "author": "content_builder",
-            "content": {"parts": [{"text": "Course content."}]},
-        }
+    # Mock the send_message_streaming generator
+    async def mock_streaming_responses(*args, **kwargs):
+        from a2a.types import (
+            SendStreamingMessageResponse,
+            SendStreamingMessageSuccessResponse,
+            Message,
+            Part,
+            TextPart,
+            Role,
+            TaskStatusUpdateEvent,
+            TaskStatus,
+            TaskState,
+        )
 
-    mock_query.side_effect = mock_events
+        status_event = TaskStatusUpdateEvent(
+            context_id="session1",
+            final=False,
+            kind="status-update",
+            task_id="task1",
+            status=TaskStatus(state=TaskState.working),
+        )
+        yield SendStreamingMessageResponse(
+            root=SendStreamingMessageSuccessResponse(
+                id="req1",
+                jsonrpc="2.0",
+                result=status_event
+            )
+        )
+
+        msg = Message(
+            role=Role.agent,
+            message_id="msg1",
+            parts=[Part(TextPart(kind="text", text="Researching..."))],
+            context_id="session1",
+        )
+        yield SendStreamingMessageResponse(
+            root=SendStreamingMessageSuccessResponse(
+                id="req2",
+                jsonrpc="2.0",
+                result=msg
+            )
+        )
+
+        msg2 = Message(
+            role=Role.agent,
+            message_id="msg2",
+            parts=[Part(TextPart(kind="text", text="Course content."))],
+            context_id="session1",
+        )
+        yield SendStreamingMessageResponse(
+            root=SendStreamingMessageSuccessResponse(
+                id="req3",
+                jsonrpc="2.0",
+                result=msg2
+            )
+        )
+
+    mock_a2a_client.send_message_streaming.side_effect = mock_streaming_responses
 
     response = client.post(
         "/api/chat_stream", json={"message": "test", "user_id": "user1"}
@@ -84,4 +127,4 @@ def test_chat_stream_success(mock_query, mock_create_session, mock_list_agents, 
 
     # Find result
     result = next(d for d in data if d["type"] == "result")
-    assert result["text"] == "Course content."
+    assert result["text"] == "Researching...Course content."

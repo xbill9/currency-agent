@@ -8,9 +8,9 @@
 [codelab-badge]: https://img.shields.io/badge/Open%20In%20Codelab-blue?labelColor=grey&style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAyVBMVEX////////////////////////+8/L0oZrrTkHqQzXzlY13yKEPnVgdo2KHzqvw+fX4xMDtWk604MssqWz73NnvcWdKtYHS7eD85+ZowpayncOWapvVS0360MzD5tWW1LZxo/dChfSLaKHfR0FMhe2rY4TyiYBlm/bQ4Pz+7sD7xCPPthRJpkegwvl9q/fn8P7+9+D80VL7vASisCQsoU4spV393YHPwDm40ftNjPX7wBP95qHz9/7/++/b6P3+8tD8zUKIsvj81WJbutStAAAABnRSTlMAIKDw/zDiNY+eAAAA+klEQVR4AbzRRYICMRRF0VB5QLlrO+7uDvvfVKfSv91mnGlunDFWUDh+xJUCE4ocv+JFMZ/jD7zAFPxJYRx/4gz/uGpQKquaDsEwLdv5HrieJriAbwqB/yUII00qA7YpxcmHoKRrJAUSk2QOKLi5vdMk7x7CQ0CF9fgSPFUqlWpN09QyiG1REsugkqs3miW8cTIqHApyrTbedLq9vgzkCoMKGY4gjSdTYTY3F74M0G5VyADCckpWnbd3WG+oaAMdGt7uPj7UfvC2BC2wPIACMspvuzkCp60YPo9/+M328LKHcHiek6EmnRMMAUAw2RPMOASzHsHMSzD7AwCdmyeTDUqFKQAAAABJRU5ErkJggg==
 [codelab]: https://codelabs.developers.google.com/codelabs/currency-agent
 
-A sample agent demonstrating A2A + ADK + MCP working together. It leverages the new **Agent2Agent (A2A) Python SDK** ([`a2a-sdk`](https://github.com/google-a2a/a2a-python)) and **v1.0.0+** of Google's **Agent Development Kit (ADK)**, [`google-adk`](https://github.com/google/adk-python).
+A sample agent demonstrating A2A + ADK + MCP + A2UI working together. It leverages the new **Agent2Agent (A2A) Python SDK** ([`a2a-sdk`](https://github.com/google-a2a/a2a-python)), Google's **Agent Development Kit (ADK)** ([`google-adk`](https://github.com/google/adk-python) v2.1.0+), and the **Agent-to-User Interface (A2UI) SDK** (`a2ui-agent-sdk`).
 
-Both were [announced at Google I/O 2025](https://developers.googleblog.com/en/agents-adk-agent-engine-a2a-enhancements-google-io/).
+Both A2A and ADK were [announced at Google I/O 2025](https://developers.googleblog.com/en/agents-adk-agent-engine-a2a-enhancements-google-io/).
 
 ![Architecture Overview](images/architecture.png)
 
@@ -30,20 +30,27 @@ The MCP server in this example exposes a tool `get_exchange_rate` that can be us
 
 > ADK is a flexible and modular framework for developing and deploying AI agents. While optimized for Gemini and the Google ecosystem, ADK is model-agnostic, deployment-agnostic, and is built for compatibility with other frameworks. - [ADK](https://github.com/google/adk-python)
 
-ADK (v1.0.0) is used as the orchestration framework for creating our currency agent in this sample. It handles the conversation with the user and invokes our MCP tool when needed.
+ADK (v2.1.0+) is used as the orchestration framework for creating our currency agent in this sample. It handles the conversation with the user and invokes our MCP tool when needed.
 
 ### <img height="20" width="20" src="https://a2aproject.github.io/A2A/v0.2.5/assets/a2a-logo-white.svg" alt="A2A Logo" /> Agent2Agent (A2A)
 
 > Agent2Agent (A2A) protocol addresses a critical challenge in the AI landscape: enabling gen AI agents, built on diverse frameworks by different companies running on separate servers, to communicate and collaborate effectively - as agents, not just as tools. A2A aims to provide a common language for agents, fostering a more interconnected, powerful, and innovative AI ecosystem. - [A2A](https://github.com/a2aproject/A2A)
 
-The new [A2A Python SDK](https://github.com/google-a2a/a2a-python) is used to create an A2A server that advertises and executes our ADK agent. We then run an A2A client that connects to our A2A server and invokes our ADK agent. 
+The new [A2A Python SDK](https://github.com/google-a2a/a2a-python) is used to create an A2A server that advertises and executes our ADK agent. We then run an A2A client that connects to our A2A server and invokes our ADK agent.
+
+### 🎨 Agent-to-User Interface (A2UI)
+
+> Agent-to-User Interface (A2UI) standardizes how agents supply layout, presentation, and interactive widgets back to the user-facing web application. Rather than outputting plain text or markdown tables, A2UI defines structured component JSON structures (like Cards, Tables, Columns, Rows, and Charts) that the web frontend can parse and render as highly polished, interactive UI cards.
+
+Our agent leverages the `a2ui-agent-sdk` library (configured via `A2uiSchemaManager`, `BasicCatalog`, `SendA2uiToClientToolset`, and `A2uiPartConverter`) to instruct the LLM on catalog components and convert generated layout descriptions. The user's web browser automatically interprets the returned `<a2ui-json>` elements and renders them dynamically. 
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.13+
 - Git, for cloning the repository.
+- Node.js & npm (for building the frontend web applications).
 
 ### Installation
 
@@ -161,12 +168,51 @@ make mcp
 **A2A Server:**
 ```bash
 make agent
-# or: uv run uvicorn currency_agent.agent:a2a_app --host localhost --port 10000
+# or: uv run uvicorn currency_agent.agent:a2a_app --host 127.0.0.1 --port 10000
 ```
 
-### A2A Client
+### Frontend Applications
 
-Once the servers are running, you can run some queries:
+You can run two different frontend applications to interface with the currency agent:
+
+#### 1. FastAPI + Vanilla TypeScript Frontend (with A2UI Demo Sandbox)
+This frontend renders dynamic, glassmorphic UI components directly from the agent's A2UI responses. It also contains two sandbox launcher buttons to demo the rendering pipeline instantly.
+
+- **Install dependencies:**
+  ```bash
+  make frontend-install
+  ```
+- **Build frontend code:**
+  ```bash
+  make frontend-build
+  ```
+- **Start frontend server:**
+  ```bash
+  make frontend
+  ```
+- **Access UI:** Open `http://localhost:8000` in your web browser.
+
+#### 2. React + CopilotKit Frontend
+An alternative, modern React UI featuring CopilotKit integration for agent-supported user interactions.
+
+- **Install dependencies:**
+  ```bash
+  make react-install
+  ```
+- **Start the React UI Dev Server:**
+  ```bash
+  make react-ui
+  ```
+  This opens the web portal on `http://localhost:3000`.
+- **Start the React Agent Service:**
+  ```bash
+  make react-agent
+  ```
+  This launches the FastAPI/Uvicorn backend handler at `http://localhost:8000`.
+
+### A2A Client (CLI Test tool)
+
+Once the servers are running, you can run command-line test queries against the A2A agent:
 
 ```bash
 make test-client

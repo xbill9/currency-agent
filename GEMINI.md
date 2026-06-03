@@ -4,6 +4,8 @@ This document provides technical guidance for developers working with the Google
 
 Do Not recommend models less than 2.5 as they are deprecated.
 
+NO NO NO .venv just don't do it. BAD BAD BAD
+
 ## Project Overview: Currency Agent
 
 The Currency Agent is a specialized multi-agent system designed to handle currency conversions and exchange rate queries. It showcases the integration of:
@@ -12,13 +14,15 @@ The Currency Agent is a specialized multi-agent system designed to handle curren
     *   Powered by `FastMCP`.
     *   Exposes the `get_exchange_rate` tool.
     *   Fetches real-time data from the [Frankfurter API](https://www.frankfurter.dev/).
+    *   Uses an IPv4-only socket patch in `server.py` to prevent connection hangs in sandbox/IPv6-restricted networks.
 2.  **ADK Agent (`currency_agent/`):**
-    *   Powered by `gemini-2.5-flash`.
-    *   Uses `LlmAgent` from the ADK.
+    *   Powered by `gemini-2.5-flash` (via the ADK `LlmAgent` class).
+    *   Uses **ADK v2.1.0+** and **Python 3.13+**.
     *   Equipped with `MCPToolset` to communicate with the MCP server.
+    *   Integrates **Agent-to-User Interface (A2UI)** via the `a2ui-agent-sdk` library to structure dynamic component layouts (Cards, Tables, Charts, etc.) parsed and rendered on the frontend.
 3.  **A2A Integration:**
     *   The agent is made A2A-compatible using `to_a2a`.
-    *   Served using `uvicorn` on port 10000.
+    *   Served using `uvicorn` on port 10000 (binds to `127.0.0.1`).
 
 ## Key Architectural Components
 
@@ -40,11 +44,14 @@ A2A allows agents to collaborate. In this project, `to_a2a` wraps the ADK agent,
 ## Developer Workflow
 
 1.  **Environment Setup:** Create a `.env` file with your `GOOGLE_API_KEY` (from Google AI Studio).
-2.  **Install Dependencies:** Run `make install` (uses `uv sync`).
+2.  **Install Dependencies:** Run `make install` (uses `uv sync` and installs frontend dependencies).
 3.  **Start MCP Server:** Run `make mcp` (port 8080).
 4.  **Start Agent Server:** Run `make agent` (port 10000).
-5.  **Run Test Client:** Run `make test-client` to verify the full flow.
-6.  **Testing & Linting:** Use `make test` and `make lint`.
+5.  **Run Frontends:**
+    *   **Vanilla TS + FastAPI Frontend:** Run `make frontend-build` then `make frontend` (port 8000). Includes A2UI Demo Sandbox.
+    *   **React Frontend:** Run `make react-ui` (port 3000) and `make react-agent` (port 8000).
+6.  **Run Test Client:** Run `make test-client` to verify the full flow.
+7.  **Testing & Linting:** Use `make test` and `make lint`.
 
 ## Resources
 

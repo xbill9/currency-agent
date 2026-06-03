@@ -5,7 +5,6 @@ handle_error() {
   echo -e "\n\n*******************************************************"
   echo "Error: $1"
   echo "*******************************************************"
-  exit 1
 }
 
 # --- Part 1: Find or Create Google Cloud Project ID ---
@@ -78,13 +77,5 @@ if [ "$PROJECT_ID_SET" = false ]; then
     done
 fi
 
-# --- Part 2: Install Dependencies and Run Billing Setup ---
-# This part runs for both existing and newly created projects.
-echo -e "\n--- Installing Python dependencies ---"
-pip install --upgrade --user google-cloud-billing || handle_error "Failed to install Python libraries."
-
-echo -e "\n--- Running the Billing Enablement Script ---"
-#python3 billing-enablement.py || handle_error "The billing enablement script failed. See the output above for details."
 
 echo -e "\n--- Full Setup Complete ---"
-exit 0
